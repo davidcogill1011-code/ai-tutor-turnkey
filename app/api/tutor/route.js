@@ -1,4 +1,4 @@
-import "./globals.css";
+
 
 export const metadata = {
   title: "AI Tutor (Teach-Not-Solve)",
