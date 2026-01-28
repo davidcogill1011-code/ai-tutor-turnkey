@@ -1,4 +1,4 @@
-
+export const runtime = "nodejs";
 
 export const metadata = {
   title: "AI Tutor (Teach-Not-Solve)",
