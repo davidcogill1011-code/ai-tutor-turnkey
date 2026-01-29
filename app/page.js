@@ -259,11 +259,12 @@ export default function Page() {
           )}
         </div>
 
-        {reply && (
-          <div className="card" style={{ marginTop: 14 }}>
-            <div className="reply">{reply}</div>
-          </div>
-        )}
+       {reply && (
+  <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
+    <div className="reply">{reply}</div>
+  </div>
+)}
+
 
         {sessionMode && history.length > 0 && (
           <>
