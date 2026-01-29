@@ -271,13 +271,25 @@ export default function Page() {
             <hr />
             <div className="small" style={{ fontWeight: 700, marginBottom: 8 }}>Session transcript</div>
             <div className="reply">
-              {history.map((m, i) => (
-                <div key={i} style={{ marginBottom: 10 }}>
-                  <div style={{ fontWeight: 800 }}>{m.role === "student" ? "Student" : "Tutor"}</div>
-                  <div>{m.text}</div>
-                </div>
-              ))}
-            </div>
+  {history.map((m, i) => (
+    <div
+      key={i}
+      style={{
+        marginBottom: 10,
+        padding: "10px 12px",
+        borderRadius: 14,
+        background: m.role === "student" ? "var(--blueSoft)" : "#fff",
+        border: "1px solid var(--border)"
+      }}
+    >
+      <div style={{ fontWeight: 800, marginBottom: 4 }}>
+        {m.role === "student" ? "Student" : "Tutor"}
+      </div>
+      <div>{m.text}</div>
+    </div>
+  ))}
+</div>
+
           </>
         )}
       </div>
