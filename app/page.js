@@ -246,7 +246,8 @@ export default function Page() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+        <div className="btnRow" style={{ marginTop: 12 }}>
+
           {!sessionMode && (
             <button onClick={sendNormal} disabled={loading}>
               {loading ? "Thinking..." : "Teach me"}
@@ -265,12 +266,20 @@ export default function Page() {
             </button>
           )}
 
-          <button type="button" onClick={() => lastReplyRef.current && speak(lastReplyRef.current)}>
-            Read last reply 🔊
-          </button>
+         <button
+  type="button"
+  className="btnSecondary"
+  onClick={() => lastReplyRef.current && speak(lastReplyRef.current)}
+>
+  Read last reply 🔊
+</button>
+
 
           {sessionMode && (
-            <button type="button" onClick={resetSession}>Reset ♻️</button>
+            <button type="button" className="btnSecondary" onClick={resetSession}>
+  Reset ♻️
+</button>
+
           )}
         </div>
 
