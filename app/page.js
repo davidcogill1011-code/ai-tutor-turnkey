@@ -129,8 +129,23 @@ export default function Page() {
 
   const inActiveSession = sessionMode && history.length > 0;
 
-  return (
+ return (
+  <>
+    <div className="topbar">
+      <div className="topbarInner">
+        <div className="topbarLeft">
+          <div className="logoDot" aria-hidden="true" />
+          <div>
+            <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>AI Tutor</div>
+            <div className="small">Teach-not-solve • School-safe</div>
+          </div>
+        </div>
+        <div className="badge">Beta</div>
+      </div>
+    </div>
+
     <div className={`container ${wrapperClass}`}>
+
      <div className="header">
   <div className="brand">
     <div className="logoDot" aria-hidden="true" />
@@ -293,6 +308,8 @@ export default function Page() {
           </>
         )}
       </div>
-    </div>
-  );
+      </div>
+  </>
+);
 }
+
