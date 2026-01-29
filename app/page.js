@@ -140,7 +140,8 @@ export default function Page() {
             <div className="small">Teach-not-solve • School-safe</div>
           </div>
         </div>
-        <div className="badge">Beta</div>
+       <div className="badge">School Pilot</div>
+
       </div>
     </div>
 
