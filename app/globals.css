@@ -134,10 +134,30 @@ button:disabled{ opacity: .55; cursor:not-allowed; }
 
 .toggles{ gap: 8px; }
 
+.logoDot{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  box-shadow: 0 10px 18px rgba(30,64,175,.20);
+}
+
+.toggle{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+.toggle input{ transform: scale(1.05); }
+
 .h1{
   margin:0;
   font-size: 20px;
   letter-spacing: -0.02em;
+}
 
 .tagline{
   margin: 2px 0 0;
