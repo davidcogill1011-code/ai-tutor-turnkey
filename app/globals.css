@@ -151,4 +151,59 @@ hr{
   border:0;
   border-top: 1px solid var(--border);
   margin: 14px 0;
+}/* Top app bar */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(10px);
+  background: rgba(246, 248, 252, 0.75);
+  border-bottom: 1px solid var(--border);
 }
+.topbarInner{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.topbarLeft{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+.badge{
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(37,99,235,.25);
+  background: var(--blueSoft);
+  color: var(--text);
+}
+
+/* Section title */
+.sectionTitle{
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--muted);
+  margin: 0 0 10px 0;
+}
+
+/* Buttons: primary / secondary */
+.btnRow{ display:flex; gap:10px; flex-wrap: wrap; }
+
+.btnSecondary{
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btnSecondary:hover{
+  background: #f8fafc;
+}
+
+/* Softer card spacing */
+.cardTight{ padding: 14px; }
+
