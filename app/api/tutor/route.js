@@ -102,15 +102,32 @@ export async function POST(req) {
       return Response.json({ error: "Missing message" }, { status: 400 });
     }
 
+    // Demo fallback if key not set (so app still works)
     if (!process.env.OPENAI_API_KEY) {
-      return Response.json({
-        reply:
-`## Feedback
+      const demo = mode === "session"
+        ? `## Feedback
 ✅ Demo mode is on (no API key set).
 
 ## Next step
-Tell me what you tried so far (one short sentence).`
-      });
+Tell me what the question is asking you to find (one short sentence).`
+        : `## Goal
+Understand the problem and learn the method.
+
+## Step 1 (Your turn)
+What do you think the question is asking you to find?
+
+## Hint
+Rewrite the question in your own words.
+
+## Similar Example
+Example: Solve 3x + 2 = 11
+1) Subtract 2 from both sides → 3x = 9
+2) Divide both sides by 3 → x = 3
+
+## Check Understanding
+What operation would you undo first in your problem?`;
+
+      return Response.json({ reply: demo });
     }
 
     const prompt = buildTutorPrompt({
@@ -140,10 +157,7 @@ Tell me what you tried so far (one short sentence).`
     const data = await r.json().catch(() => ({}));
 
     if (!r.ok) {
-      return Response.json(
-        { error: "OpenAI error", details: data },
-        { status: 500 }
-      );
+      return Response.json({ error: "OpenAI error", details: data }, { status: 500 });
     }
 
     return Response.json({ reply: data.output_text || "No text output returned." });
@@ -152,4 +166,3 @@ Tell me what you tried so far (one short sentence).`
     return Response.json({ error: "Server error", details: String(e) }, { status: 500 });
   }
 }
-
