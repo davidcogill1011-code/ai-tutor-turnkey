@@ -131,10 +131,19 @@ export default function Page() {
 
   return (
     <div className={`container ${wrapperClass}`}>
-      <h1 style={{ margin: "6px 0 4px" }}>AI Tutor (School-Safe • Teach-Not-Solve)</h1>
-      <p className="small secondary">
-        Built to provide one-on-one, step-by-step learning support when human resources aren’t available — without giving answers.
-      </p>
+     <div className="header">
+  <div className="brand">
+    <div className="logoDot" aria-hidden="true" />
+    <div>
+      <h1 className="h1">AI Tutor</h1>
+      <p className="tagline">School-safe, step-by-step learning support that teaches — not solves.</p>
+    </div>
+  </div>
+</div>
+<p className="small secondary">
+  Every student gets one-on-one help, even when staffing and tutoring resources aren’t available.
+</p>
+
 
       <div className="card" style={{ marginTop: 12 }}>
         <div className="toggles" style={{ marginBottom: 12 }}>
