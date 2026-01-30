@@ -322,3 +322,24 @@ hr{
   .ctaBar{ flex-direction: column; align-items: stretch; }
 }
 a{ text-decoration: none; }
+.btnLink{
+  display:inline-block;
+  text-align:center;
+  text-decoration:none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--blue);
+  color: white;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+.btnLink:hover{ background: var(--blue2); }
+
+.btnSecondaryLink{
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btnSecondaryLink:hover{ background: #f8fafc; }
+
