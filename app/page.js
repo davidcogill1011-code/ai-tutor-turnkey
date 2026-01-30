@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useMemo, useRef, useState } from "react";
 
 function speak(text) {
@@ -13,7 +12,14 @@ function speak(text) {
   } catch {}
 }
 
-const defaultProfile = { adhd:false, dyslexia:false, dyscalculia:false, autism:false, anxiety:false, ell:false };
+const defaultProfile = {
+  adhd: false,
+  dyslexia: false,
+  dyscalculia: false,
+  autism: false,
+  anxiety: false,
+  ell: false
+};
 
 export default function Page() {
   const [subject, setSubject] = useState("Math");
@@ -130,219 +136,220 @@ export default function Page() {
 
   const inActiveSession = sessionMode && history.length > 0;
 
- return (
-  <>
-    <div className="topbar">
-      <div className="topbarInner">
-        <div className="topbarLeft">
-          <div className="logoDot" aria-hidden="true" />
-          <div>
-            <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>AI Tutor</div>
-            <div className="small">Teach-not-solve • School-safe</div>
+  return (
+    <>
+      <div className="topbar">
+        <div className="topbarInner">
+          <div className="topbarLeft">
+            <div className="logoDot" aria-hidden="true" />
+            <div>
+              <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>AI Tutor</div>
+              <div className="small">Teach-not-solve • School-safe</div>
+            </div>
           </div>
+          <div className="badge">School Pilot</div>
         </div>
-      <div className="badge">School Pilot</div>
-
-
       </div>
-    </div>
 
-    <div className={`container ${wrapperClass}`}>
+      <div className={`container ${wrapperClass}`}>
+        <p className="small secondary" style={{ marginTop: 10 }}>
+          Every student gets one-on-one help, even when staffing and tutoring resources aren’t available.
+        </p>
 
-     <div className="header">
-  <div className="brand">
-    <div className="logoDot" aria-hidden="true" />
-    <div>
-      <h1 className="h1">AI Tutor</h1>
-      <p className="tagline">School-safe, step-by-step learning support that teaches — not solves.</p>
-    </div>
-  </div>
-</div>
-<p className="small secondary">
-  Every student gets one-on-one help, even when staffing and tutoring resources aren’t available.
-</p>
+        <div className="card" style={{ marginTop: 12 }}>
+          <div
+            className="cardTight"
+            style={{
+              background: "var(--blueSoft)",
+              border: "1px solid rgba(37,99,235,.18)",
+              borderRadius: 16,
+              marginBottom: 12
+            }}
+          >
+            <div className="sectionTitle">How it works</div>
+            <div className="small" style={{ lineHeight: 1.6 }}>
+              <div>• <b>Teaches, not solves:</b> guides thinking and asks for student steps.</div>
+              <div>• <b>Session Mode:</b> one micro-step at a time to reduce overwhelm and build skill.</div>
+              <div>• <b>Learning supports:</b> optional settings for focus, dyslexia-friendly text, and ELL.</div>
+            </div>
+          </div>
 
+          <div className="toggles" style={{ marginBottom: 12 }}>
+            <div className="toggle">
+              <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
+              <span>Session Mode (1 step)</span>
+            </div>
+            <div className="toggle">
+              <input type="checkbox" checked={dyslexiaMode} onChange={(e) => setDyslexiaMode(e.target.checked)} />
+              <span>Dyslexia-friendly</span>
+            </div>
+            <div className="toggle">
+              <input type="checkbox" checked={plainLanguage} onChange={(e) => setPlainLanguage(e.target.checked)} />
+              <span>Plain language</span>
+            </div>
+            <div className="toggle">
+              <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
+              <span>Read aloud</span>
+            </div>
+            <div className="toggle">
+              <input type="checkbox" checked={focusMode} onChange={(e) => setFocusMode(e.target.checked)} />
+              <span>Focus mode</span>
+            </div>
+          </div>
 
-      <div className="card" style={{ marginTop: 12 }}>
-  <div className="cardTight" style={{ background: "var(--blueSoft)", border: "1px solid rgba(37,99,235,.18)", borderRadius: 16, marginBottom: 12 }}>
-  <div className="sectionTitle">How it works</div>
-  <div className="small" style={{ lineHeight: 1.6 }}>
-    <div>• <b>Teaches, not solves:</b> the tutor guides thinking and asks for student steps.</div>
-    <div>• <b>Session Mode:</b> one micro-step at a time to reduce overwhelm and build skill.</div>
-    <div>• <b>Learning supports:</b> optional settings for focus, dyslexia-friendly text, and ELL.</div>
-  </div>
-</div>
+          <div style={{ marginBottom: 12 }}>
+            <div className="sectionTitle">Learning profile (optional)</div>
+            <div className="toggles">
+              {[
+                ["adhd", "ADHD / Focus support"],
+                ["dyslexia", "Dyslexia support"],
+                ["dyscalculia", "Dyscalculia support"],
+                ["autism", "Autism-friendly"],
+                ["anxiety", "Anxiety-sensitive"],
+                ["ell", "English learner (ELL)"]
+              ].map(([k, label]) => (
+                <div className="toggle" key={k}>
+                  <input type="checkbox" checked={learningProfile[k]} onChange={() => toggleProfile(k)} />
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-  <div className="small" style={{ marginBottom: 10 }}>
-    Tip: Use <b>Session Mode</b> for step-by-step learning. The tutor won’t give final answers until attempts are made.
-  </div>
+          <div className="row">
+            <div>
+              <label>Subject</label>
+              <select value={subject} onChange={(e) => setSubject(e.target.value)}>
+                <option>Math</option>
+                <option>Reading</option>
+                <option>Writing</option>
+                <option>Science</option>
+                <option>History</option>
+                <option>General</option>
+              </select>
+            </div>
+            <div>
+              <label>Level</label>
+              <select value={level} onChange={(e) => setLevel(e.target.value)}>
+                <option>Elementary</option>
+                <option>Middle School</option>
+                <option>High School</option>
+                <option>College</option>
+                <option>Adult learner</option>
+              </select>
+            </div>
+            <div>
+              <label>Teaching style</label>
+              <select value={style} onChange={(e) => setStyle(e.target.value)}>
+                <option>Socratic</option>
+                <option>Step-by-step</option>
+                <option>Examples-first</option>
+                <option>Visual descriptions</option>
+                <option>Quiz me</option>
+              </select>
+            </div>
+            <div>
+              <label>Attempts (unlock final answer)</label>
+              <input type="text" value={`${attempts}`} readOnly />
+            </div>
+          </div>
 
-        <div className="toggles" style={{ marginBottom: 12 }}>
-          <div className="toggle">
-            <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
-            <span>Session Mode (1 step)</span>
-          </div>
-          <div className="toggle">
-            <input type="checkbox" checked={dyslexiaMode} onChange={(e) => setDyslexiaMode(e.target.checked)} />
-            <span>Dyslexia-friendly</span>
-          </div>
-          <div className="toggle">
-            <input type="checkbox" checked={plainLanguage} onChange={(e) => setPlainLanguage(e.target.checked)} />
-            <span>Plain language</span>
-          </div>
-          <div className="toggle">
-            <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
-            <span>Read aloud</span>
-          </div>
-          <div className="toggle">
-            <input type="checkbox" checked={focusMode} onChange={(e) => setFocusMode(e.target.checked)} />
-            <span>Focus mode</span>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <div className="small" style={{ marginBottom: 8, fontWeight: 600 }}>Learning Profile (optional)</div>
-          <div className="toggles">
-            {[
-              ["adhd","ADHD / Focus support"],
-              ["dyslexia","Dyslexia support"],
-              ["dyscalculia","Dyscalculia support"],
-              ["autism","Autism-friendly"],
-              ["anxiety","Anxiety-sensitive"],
-              ["ell","English learner (ELL)"],
-            ].map(([k,label]) => (
-              <div className="toggle" key={k}>
-                <input type="checkbox" checked={learningProfile[k]} onChange={() => toggleProfile(k)} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="row">
-          <div>
-            <label>Subject</label>
-            <select value={subject} onChange={(e) => setSubject(e.target.value)}>
-              <option>Math</option><option>Reading</option><option>Writing</option>
-              <option>Science</option><option>History</option><option>General</option>
-            </select>
-          </div>
-          <div>
-            <label>Level</label>
-            <select value={level} onChange={(e) => setLevel(e.target.value)}>
-              <option>Elementary</option><option>Middle School</option><option>High School</option>
-              <option>College</option><option>Adult learner</option>
-            </select>
-          </div>
-          <div>
-            <label>Teaching style</label>
-            <select value={style} onChange={(e) => setStyle(e.target.value)}>
-              <option>Socratic</option><option>Step-by-step</option><option>Examples-first</option>
-              <option>Visual descriptions</option><option>Quiz me</option>
-            </select>
-          </div>
-          <div>
-            <label>Attempts (unlock final answer)</label>
-            <input type="text" value={`${attempts}`} readOnly />
-          </div>
-        </div>
-
-        <div style={{ marginTop: 12 }}>
-          <label>{sessionMode ? (inActiveSession ? "Your next step attempt" : "Problem to start a session") : "Student question"}</label>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={
-              sessionMode
-                ? (inActiveSession
+          <div style={{ marginTop: 12 }}>
+            <label>
+              {sessionMode
+                ? inActiveSession
+                  ? "Your next step attempt"
+                  : "Problem to start a session"
+                : "Student question"}
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={
+                sessionMode
+                  ? inActiveSession
                     ? "Type your next step (example: 'Subtract 5 from both sides')."
-                    : "Paste the problem (example: 'Solve 2x + 5 = 17').")
-                : "Ask a question (example: 'How do I solve 2x + 5 = 17?')"
-            }
-          />
+                    : "Paste the problem (example: 'Solve 2x + 5 = 17')."
+                  : "Ask a question (example: 'How do I solve 2x + 5 = 17?')"
+              }
+            />
+          </div>
+
+          <div className="btnRow" style={{ marginTop: 12 }}>
+            {!sessionMode && (
+              <button onClick={sendNormal} disabled={loading}>
+                {loading ? "Thinking..." : "Teach me"}
+              </button>
+            )}
+
+            {sessionMode && !inActiveSession && (
+              <button onClick={startSession} disabled={loading}>
+                {loading ? "Starting..." : "Start session"}
+              </button>
+            )}
+
+            {sessionMode && inActiveSession && (
+              <button onClick={submitStep} disabled={loading}>
+                {loading ? "Checking..." : "Submit my step"}
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="btnSecondary"
+              onClick={() => lastReplyRef.current && speak(lastReplyRef.current)}
+            >
+              Read last reply 🔊
+            </button>
+
+            {sessionMode && (
+              <button type="button" className="btnSecondary" onClick={resetSession}>
+                Reset ♻️
+              </button>
+            )}
+          </div>
+
+          {reply && (
+            <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
+              <div className="reply" style={{ fontSize: 15 }}>
+                {reply}
+              </div>
+            </div>
+          )}
+
+          {sessionMode && history.length > 0 && (
+            <>
+              <hr />
+              <div className="sectionTitle">Session transcript</div>
+              <div className="reply">
+                {history.map((m, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      marginBottom: 10,
+                      padding: "10px 12px",
+                      borderRadius: 14,
+                      background: m.role === "student" ? "var(--blueSoft)" : "#fff",
+                      border: "1px solid var(--border)"
+                    }}
+                  >
+                    <div style={{ fontWeight: 800, marginBottom: 4 }}>
+                      {m.role === "student" ? "Student" : "Tutor"}
+                    </div>
+                    <div>{m.text}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="small" style={{ marginTop: 16, textAlign: "center" }}>
+            School-safe tutoring experience: step-by-step guidance that encourages student thinking.
+            <br />
+            Please don’t enter sensitive personal information. Use in accordance with your school or family policies.
+          </div>
         </div>
-
-        <div className="btnRow" style={{ marginTop: 12 }}>
-
-          {!sessionMode && (
-            <button onClick={sendNormal} disabled={loading}>
-              {loading ? "Thinking..." : "Teach me"}
-            </button>
-          )}
-
-          {sessionMode && !inActiveSession && (
-            <button onClick={startSession} disabled={loading}>
-              {loading ? "Starting..." : "Start session"}
-            </button>
-          )}
-
-          {sessionMode && inActiveSession && (
-            <button onClick={submitStep} disabled={loading}>
-              {loading ? "Checking..." : "Submit my step"}
-            </button>
-          )}
-
-         <button
-  type="button"
-  className="btnSecondary"
-  onClick={() => lastReplyRef.current && speak(lastReplyRef.current)}
->
-  Read last reply 🔊
-</button>
-
-
-          {sessionMode && (
-            <button type="button" className="btnSecondary" onClick={resetSession}>
-  Reset ♻️
-</button>
-
-          )}
-        </div>
-
-       {reply && (
-  <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
-    <div className="reply" style={{ fontSize: 15 }}>{reply}</div>
-  </div>
-)}
-
-
-
-        {sessionMode && history.length > 0 && (
-          <>
-            <hr />
-            <div className="small" style={{ fontWeight: 700, marginBottom: 8 }}>Session transcript</div>
-            <div className="reply">
-  {history.map((m, i) => (
-    <div
-      key={i}
-      style={{
-        marginBottom: 10,
-        padding: "10px 12px",
-        borderRadius: 14,
-        background: m.role === "student" ? "var(--blueSoft)" : "#fff",
-        border: "1px solid var(--border)"
-      }}
-    >
-      <div style={{ fontWeight: 800, marginBottom: 4 }}>
-        {m.role === "student" ? "Student" : "Tutor"}
       </div>
-      <div>{m.text}</div>
-    </div>
-  ))}
-</div>
-
-          </>
-        )}
-      </div>
-         <div className="small" style={{ marginTop: 16, textAlign: "center" }}>
-  School-safe tutoring experience: step-by-step guidance that encourages student thinking.
-  <br />
-  Please don’t enter sensitive personal information. Use in accordance with your school or family policies.
-</div>
-
-</div>
- 
-      </div>
-);
+    </>
+  );
 }
-
