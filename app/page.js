@@ -163,6 +163,15 @@ export default function Page() {
 
 
       <div className="card" style={{ marginTop: 12 }}>
+  <div className="cardTight" style={{ background: "var(--blueSoft)", border: "1px solid rgba(37,99,235,.18)", borderRadius: 16, marginBottom: 12 }}>
+  <div className="sectionTitle">How it works</div>
+  <div className="small" style={{ lineHeight: 1.6 }}>
+    <div>• <b>Teaches, not solves:</b> the tutor guides thinking and asks for student steps.</div>
+    <div>• <b>Session Mode:</b> one micro-step at a time to reduce overwhelm and build skill.</div>
+    <div>• <b>Learning supports:</b> optional settings for focus, dyslexia-friendly text, and ELL.</div>
+  </div>
+</div>
+
   <div className="small" style={{ marginBottom: 10 }}>
     Tip: Use <b>Session Mode</b> for step-by-step learning. The tutor won’t give final answers until attempts are made.
   </div>
