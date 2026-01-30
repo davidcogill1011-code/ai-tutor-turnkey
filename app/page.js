@@ -163,6 +163,10 @@ export default function Page() {
 
 
       <div className="card" style={{ marginTop: 12 }}>
+  <div className="small" style={{ marginBottom: 10 }}>
+    Tip: Use <b>Session Mode</b> for step-by-step learning. The tutor won’t give final answers until attempts are made.
+  </div>
+
         <div className="toggles" style={{ marginBottom: 12 }}>
           <div className="toggle">
             <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
