@@ -1,4 +1,6 @@
-"use client";
+"use client"; 
+const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScvsMNJmd0Kgj8ouhP_VKs1H5lDsO3LtvLdtjHCtx7LDDEv2Q/viewform?usp=header";
+
 
 import { useMemo, useRef, useState } from "react";
 
@@ -403,7 +405,8 @@ export default function Page() {
                 <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
                 <div style={{ marginTop: 12 }}>
                   <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
-  <button className="btnSecondary">Join waitlist</button>
+ <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
+  <button className="btnSecondary">Request pilot</button>
 </a>
 
  <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
