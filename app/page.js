@@ -33,18 +33,19 @@ export default function Page() {
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Modes
+  const [sessionMode, setSessionMode] = useState(true);
+  const [coachMode, setCoachMode] = useState(true);
+
   // Accessibility
   const [dyslexiaMode, setDyslexiaMode] = useState(false);
   const [plainLanguage, setPlainLanguage] = useState(true);
   const [readAloud, setReadAloud] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
 
-  // Session Mode
-  const [sessionMode, setSessionMode] = useState(true);
-  const [history, setHistory] = useState([]); // {role:"student"|"tutor", text}
+  const [history, setHistory] = useState([]);
   const [attempts, setAttempts] = useState(0);
 
-  // Learning profile (saved locally)
   const [learningProfile, setLearningProfile] = useState(() => {
     if (typeof window === "undefined") return defaultProfile;
     const saved = localStorage.getItem("learningProfile");
@@ -90,6 +91,7 @@ export default function Page() {
           accessibility: { dyslexiaMode, plainLanguage, focusMode },
           learningProfile,
           mode: sessionMode ? "session" : "normal",
+          coachMode,
           history: nextHistory,
           message: text,
           attempts: nextAttempts
@@ -107,7 +109,7 @@ export default function Page() {
         setHistory([...nextHistory, { role: "tutor", text: out }]);
       }
     } catch {
-      setReply("Could not reach the tutor API.");
+      setReply("Could not reach tutor API.");
     } finally {
       setLoading(false);
     }
@@ -125,11 +127,6 @@ export default function Page() {
     await callTutor({ text: message, isAttempt: true });
   }
 
-  async function sendNormal() {
-    if (!message.trim()) return;
-    await callTutor({ text: message, isAttempt: false });
-  }
-
   function resetSession() {
     setHistory([]);
     setAttempts(0);
@@ -139,9 +136,9 @@ export default function Page() {
 
   const inActiveSession = sessionMode && history.length > 0;
 
-  const WaitlistBtn = ({ children, variant = "primary" }) => (
+  const WaitlistBtn = ({ children }) => (
     <a
-      className={`btnLink ${variant === "secondary" ? "btnSecondaryLink" : ""}`}
+      className="btnLink"
       href={WAITLIST_URL}
       target="_blank"
       rel="noreferrer"
@@ -152,295 +149,122 @@ export default function Page() {
 
   return (
     <>
-      {/* Top bar */}
-      <div className="topbar">
-        <div className="topbarInner">
-          <div className="topbarLeft">
-            <div className="logoDot" aria-hidden="true" />
-            <div>
-              <div style={{ fontWeight: 900, letterSpacing: "-0.02em" }}>AI Tutor</div>
-              <div className="small">Teach-not-solve • School-safe</div>
-            </div>
-          </div>
-          <div className="badge">School Pilot</div>
-        </div>
-      </div>
-
       <div className={`container ${wrapperClass}`}>
-        <p className="small secondary" style={{ marginTop: 10 }}>
-          Every learner gets one-on-one help, even when human tutoring resources aren’t available.
-        </p>
+        <h1>AI Tutor</h1>
+        <p className="small">Teach-not-solve • One-on-one coaching</p>
 
-        {/* Main tutor card */}
-        <div className="card" style={{ marginTop: 12 }}>
-          {/* How it works */}
-          <div
-            className="cardTight"
-            style={{
-              background: "var(--blueSoft)",
-              border: "1px solid rgba(37,99,235,.18)",
-              borderRadius: 16,
-              marginBottom: 12
-            }}
-          >
-            <div className="sectionTitle">How it works</div>
-            <div className="small" style={{ lineHeight: 1.6 }}>
-              <div>• <b>Teaches, not solves:</b> guides thinking and asks for student steps.</div>
-              <div>• <b>Session Mode:</b> one micro-step at a time to reduce overwhelm and build skill.</div>
-              <div>• <b>Learning supports:</b> optional settings for focus, dyslexia-friendly text, and ELL.</div>
-            </div>
+        <div className="card">
+
+          {/* Toggles */}
+          <div className="toggles">
+            <label><input type="checkbox" checked={sessionMode} onChange={e=>setSessionMode(e.target.checked)} /> Session Mode</label>
+            <label><input type="checkbox" checked={coachMode} onChange={e=>setCoachMode(e.target.checked)} /> Coach Mode</label>
+            <label><input type="checkbox" checked={dyslexiaMode} onChange={e=>setDyslexiaMode(e.target.checked)} /> Dyslexia</label>
+            <label><input type="checkbox" checked={plainLanguage} onChange={e=>setPlainLanguage(e.target.checked)} /> Plain Language</label>
+            <label><input type="checkbox" checked={readAloud} onChange={e=>setReadAloud(e.target.checked)} /> Read Aloud</label>
+            <label><input type="checkbox" checked={focusMode} onChange={e=>setFocusMode(e.target.checked)} /> Focus</label>
           </div>
 
-          {/* Settings toggles */}
-          <div className="toggles" style={{ marginBottom: 12 }}>
-            <div className="toggle">
-              <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
-              <span>Session Mode (1 step)</span>
-            </div>
-            <div className="toggle">
-              <input type="checkbox" checked={dyslexiaMode} onChange={(e) => setDyslexiaMode(e.target.checked)} />
-              <span>Dyslexia-friendly</span>
-            </div>
-            <div className="toggle">
-              <input type="checkbox" checked={plainLanguage} onChange={(e) => setPlainLanguage(e.target.checked)} />
-              <span>Plain language</span>
-            </div>
-            <div className="toggle">
-              <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
-              <span>Read aloud</span>
-            </div>
-            <div className="toggle">
-              <input type="checkbox" checked={focusMode} onChange={(e) => setFocusMode(e.target.checked)} />
-              <span>Focus mode</span>
-            </div>
-          </div>
-
-          {/* Learning profile */}
-          <div style={{ marginBottom: 12 }}>
-            <div className="sectionTitle">Learning profile (optional)</div>
-            <div className="toggles">
-              {[
-                ["adhd", "ADHD / Focus support"],
-                ["dyslexia", "Dyslexia support"],
-                ["dyscalculia", "Dyscalculia support"],
-                ["autism", "Autism-friendly"],
-                ["anxiety", "Anxiety-sensitive"],
-                ["ell", "English learner (ELL)"]
-              ].map(([k, label]) => (
-                <div className="toggle" key={k}>
-                  <input type="checkbox" checked={learningProfile[k]} onChange={() => toggleProfile(k)} />
-                  <span>{label}</span>
-                </div>
-              ))}
-            </div>
+          {/* Learning Profile */}
+          <div className="toggles">
+            {Object.keys(defaultProfile).map(k=>(
+              <label key={k}>
+                <input type="checkbox" checked={learningProfile[k]} onChange={()=>toggleProfile(k)} />
+                {k}
+              </label>
+            ))}
           </div>
 
           {/* Selectors */}
           <div className="row">
-            <div>
-              <label>Subject</label>
-              <select value={subject} onChange={(e) => setSubject(e.target.value)}>
-                <option>Math</option>
-                <option>Reading</option>
-                <option>Writing</option>
-                <option>Science</option>
-                <option>History</option>
-                <option>General</option>
-              </select>
-            </div>
+            <select value={subject} onChange={e=>setSubject(e.target.value)}>
+              <option>Math</option>
+              <option>Reading</option>
+              <option>Science</option>
+              <option>History</option>
+            </select>
 
-            <div>
-              <label>Level</label>
-              <select value={level} onChange={(e) => setLevel(e.target.value)}>
-                <option>Elementary</option>
-                <option>Middle School</option>
-                <option>High School</option>
-                <option>College</option>
-                <option>Adult learner</option>
-              </select>
-            </div>
-
-            <div>
-              <label>Teaching style</label>
-              <select value={style} onChange={(e) => setStyle(e.target.value)}>
-                <option>Socratic</option>
-                <option>Step-by-step</option>
-                <option>Examples-first</option>
-                <option>Visual descriptions</option>
-                <option>Quiz me</option>
-              </select>
-            </div>
-
-            <div>
-              <label>Attempts (unlock final answer)</label>
-              <input type="text" value={`${attempts}`} readOnly />
-            </div>
+            <select value={level} onChange={e=>setLevel(e.target.value)}>
+              <option>Elementary</option>
+              <option>Middle School</option>
+              <option>High School</option>
+              <option>College</option>
+            </select>
           </div>
 
           {/* Input */}
-          <div style={{ marginTop: 12 }}>
-            <label>
-              {sessionMode
-                ? inActiveSession
-                  ? "Your next step attempt"
-                  : "Problem to start a session"
-                : "Student question"}
-            </label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={
-                sessionMode
-                  ? inActiveSession
-                    ? "Type your next step (example: 'Subtract 5 from both sides')."
-                    : "Paste the problem (example: 'Solve 2x + 5 = 17')."
-                  : "Ask a question (example: 'How do I solve 2x + 5 = 17?')"
-              }
-            />
-          </div>
+          <textarea
+            value={message}
+            onChange={e=>setMessage(e.target.value)}
+            placeholder={
+              inActiveSession
+                ? "Type your next step..."
+                : "Enter a problem to start..."
+            }
+          />
 
           {/* Buttons */}
-          <div className="btnRow" style={{ marginTop: 12 }}>
-            {!sessionMode && (
-              <button onClick={sendNormal} disabled={loading}>
-                {loading ? "Thinking..." : "Teach me"}
-              </button>
-            )}
-
-            {sessionMode && !inActiveSession && (
-              <button onClick={startSession} disabled={loading}>
-                {loading ? "Starting..." : "Start session"}
-              </button>
-            )}
-
-            {sessionMode && inActiveSession && (
-              <button onClick={submitStep} disabled={loading}>
-                {loading ? "Checking..." : "Submit my step"}
-              </button>
-            )}
-
-            <button
-              type="button"
-              className="btnSecondary"
-              onClick={() => lastReplyRef.current && speak(lastReplyRef.current)}
-            >
-              Read last reply 🔊
+          {!inActiveSession && (
+            <button onClick={startSession} disabled={loading}>
+              {loading ? "Starting..." : "Start Session"}
             </button>
+          )}
 
-            {sessionMode && (
-              <button type="button" className="btnSecondary" onClick={resetSession}>
-                Reset ♻️
-              </button>
-            )}
-          </div>
+          {inActiveSession && (
+            <button onClick={submitStep} disabled={loading}>
+              {loading ? "Checking..." : "Submit Step"}
+            </button>
+          )}
+
+          {sessionMode && (
+            <button className="btnSecondary" onClick={resetSession}>
+              Reset
+            </button>
+          )}
 
           {/* Reply */}
           {reply && (
-            <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
-              <div className="reply" style={{ fontSize: 15 }}>
-                {reply}
-              </div>
+            <div className="card">
+              <div>{reply}</div>
             </div>
           )}
 
           {/* Transcript */}
-          {sessionMode && history.length > 0 && (
-            <>
-              <hr />
-              <div className="sectionTitle">Session transcript</div>
-              <div className="reply">
-                {history.map((m, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      marginBottom: 10,
-                      padding: "10px 12px",
-                      borderRadius: 14,
-                      background: m.role === "student" ? "var(--blueSoft)" : "#fff",
-                      border: "1px solid var(--border)"
-                    }}
-                  >
-                    <div style={{ fontWeight: 800, marginBottom: 4 }}>
-                      {m.role === "student" ? "Student" : "Tutor"}
-                    </div>
-                    <div>{m.text}</div>
-                  </div>
-                ))}
-              </div>
-            </>
+          {history.length > 0 && (
+            <div className="card">
+              {history.map((m,i)=>(
+                <div key={i}>
+                  <b>{m.role}</b>: {m.text}
+                </div>
+              ))}
+            </div>
           )}
 
-          {/* Pricing + Waitlist */}
+          {/* Pricing */}
           <hr />
-          <div style={{ marginTop: 10 }}>
-            <div className="sectionTitle">Pricing (Early Access)</div>
 
-            <div className="pricingGrid">
-              <div className="plan">
-                <div className="planTop">
-                  <div>
-                    <div className="planName">Student</div>
-                    <div className="small">For individual learners</div>
-                  </div>
-                  <div className="planTag">Popular</div>
-                </div>
-                <div className="price">
-                  $7<span className="small">/mo</span>
-                </div>
-                <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
-                <div style={{ marginTop: 12 }}>
-                  <WaitlistBtn variant="secondary">Join waitlist</WaitlistBtn>
-                </div>
-              </div>
+          <h2>Early Access</h2>
 
-              <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
-                <div className="planTop">
-                  <div>
-                    <div className="planName">Family</div>
-                    <div className="small">Up to 3 students</div>
-                  </div>
-                  <div className="planTag">Best value</div>
-                </div>
-                <div className="price">
-                  $15<span className="small">/mo</span>
-                </div>
-                <div className="small">One household plan for siblings — same safe tutoring experience.</div>
-                <div style={{ marginTop: 12 }}>
-                  <WaitlistBtn>Join waitlist</WaitlistBtn>
-                </div>
-              </div>
-
-              <div className="plan">
-                <div className="planTop">
-                  <div>
-                    <div className="planName">School Pilot</div>
-                    <div className="small">Classroom or district access</div>
-                  </div>
-                  <div className="planTag">B2B</div>
-                </div>
-                <div className="price">Custom</div>
-                <div className="small">Pilot with policy alignment, onboarding, and reporting options.</div>
-                <div style={{ marginTop: 12 }}>
-                  <WaitlistBtn variant="secondary">Request pilot</WaitlistBtn>
-                </div>
-              </div>
-            </div>
-
-            <div className="ctaBar">
-              <div>
-                <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Get Early Access</div>
-                <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
-              </div>
+          <div className="pricingGrid">
+            <div className="plan">
+              <b>Student</b>
+              <div>$7 / mo</div>
               <WaitlistBtn>Join waitlist</WaitlistBtn>
             </div>
+
+            <div className="plan">
+              <b>Family</b>
+              <div>$15 / mo</div>
+              <WaitlistBtn>Join waitlist</WaitlistBtn>
+            </div>
+
+            <div className="plan">
+              <b>School Pilot</b>
+              <div>Custom</div>
+              <WaitlistBtn>Request pilot</WaitlistBtn>
+            </div>
           </div>
 
-          {/* Footer trust */}
-          <div className="small" style={{ marginTop: 16, textAlign: "center" }}>
-            School-safe tutoring experience: step-by-step guidance that encourages student thinking.
-            <br />
-            Please don’t enter sensitive personal information. Use in accordance with your school or family policies.
-          </div>
         </div>
       </div>
     </>
