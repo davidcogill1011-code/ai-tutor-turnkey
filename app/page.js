@@ -340,10 +340,66 @@ export default function Page() {
                   </div>
                 ))}
               </div>
-                <hr />
+               <hr />
 
 <div style={{ marginTop: 10 }}>
   <div className="sectionTitle">Pricing (Early Access)</div>
+
+  <div className="pricingGrid">
+    <div className="plan">
+      <div className="planTop">
+        <div>
+          <div className="planName">Student</div>
+          <div className="small">For individual learners</div>
+        </div>
+        <div className="planTag">Popular</div>
+      </div>
+      <div className="price">$7<span className="small">/mo</span></div>
+      <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
+      <div style={{ marginTop: 12 }}>
+        <button className="btnSecondary">Join waitlist</button>
+      </div>
+    </div>
+
+    <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
+      <div className="planTop">
+        <div>
+          <div className="planName">Family</div>
+          <div className="small">Up to 3 students</div>
+        </div>
+        <div className="planTag">Best value</div>
+      </div>
+      <div className="price">$15<span className="small">/mo</span></div>
+      <div className="small">One household plan for siblings — same safe tutoring experience.</div>
+      <div style={{ marginTop: 12 }}>
+        <button>Join waitlist</button>
+      </div>
+    </div>
+
+    <div className="plan">
+      <div className="planTop">
+        <div>
+          <div className="planName">School Pilot</div>
+          <div className="small">Classroom or district access</div>
+        </div>
+        <div className="planTag">B2B</div>
+      </div>
+      <div className="price">Custom</div>
+      <div className="small">Pilot with reporting, policy alignment, and admin onboarding.</div>
+      <div style={{ marginTop: 12 }}>
+        <button className="btnSecondary">Request pilot</button>
+      </div>
+    </div>
+  </div>
+
+  <div className="ctaBar">
+    <div>
+      <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Get Early Access</div>
+      <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
+    </div>
+    <button>Join waitlist</button>
+  </div>
+</div>
 
   <div className="row">
     <div className="card">
