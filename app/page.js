@@ -325,9 +325,11 @@ export default function Page() {
         )}
       </div>
          <div className="small" style={{ marginTop: 16, textAlign: "center" }}>
-  School-safe tutoring experience. We guide learning step-by-step and encourage student thinking.
+  School-safe tutoring experience: step-by-step guidance that encourages student thinking.
   <br />
-  Do not enter personal sensitive information. Always follow your school’s policies.
+  Please don’t enter sensitive personal information. Use in accordance with your school or family policies.
+</div>
+
 </div>
  
       </div>
