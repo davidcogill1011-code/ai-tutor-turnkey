@@ -340,6 +340,35 @@ export default function Page() {
                   </div>
                 ))}
               </div>
+                <hr />
+
+<div style={{ marginTop: 10 }}>
+  <div className="sectionTitle">Pricing (Early Access)</div>
+
+  <div className="row">
+    <div className="card">
+      <b>Student</b>
+      <p className="small">For individual learners</p>
+      <h2>$7 / month</h2>
+      <button className="btnSecondary">Join waitlist</button>
+    </div>
+
+    <div className="card">
+      <b>Family</b>
+      <p className="small">Up to 3 students</p>
+      <h2>$15 / month</h2>
+      <button className="btnSecondary">Join waitlist</button>
+    </div>
+
+    <div className="card">
+      <b>School Pilot</b>
+      <p className="small">District or classroom access</p>
+      <h2>Contact us</h2>
+      <button className="btnSecondary">Request pilot</button>
+    </div>
+  </div>
+</div>
+  
             </>
           )}
 
