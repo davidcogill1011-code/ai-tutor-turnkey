@@ -41,7 +41,7 @@ export default function Page() {
   const [history, setHistory] = useState([]); // {role:"student"|"tutor", text}
   const [attempts, setAttempts] = useState(0);
 
-  // Learning profile (saved)
+  // Learning profile (saved locally)
   const [learningProfile, setLearningProfile] = useState(() => {
     if (typeof window === "undefined") return defaultProfile;
     const saved = localStorage.getItem("learningProfile");
@@ -93,6 +93,7 @@ export default function Page() {
         })
       });
 
+      // If server returns non-JSON, this would throw and we fall into catch
       const data = await r.json();
       const out = data.reply || data.error || "No response.";
       setReply(out);
@@ -138,6 +139,7 @@ export default function Page() {
 
   return (
     <>
+      {/* Top bar */}
       <div className="topbar">
         <div className="topbarInner">
           <div className="topbarLeft">
@@ -153,10 +155,12 @@ export default function Page() {
 
       <div className={`container ${wrapperClass}`}>
         <p className="small secondary" style={{ marginTop: 10 }}>
-          Every student gets one-on-one help, even when staffing and tutoring resources aren’t available.
+          Every learner gets one-on-one help, even when human tutoring resources aren’t available.
         </p>
 
+        {/* Main tutor card */}
         <div className="card" style={{ marginTop: 12 }}>
+          {/* How it works */}
           <div
             className="cardTight"
             style={{
@@ -174,29 +178,51 @@ export default function Page() {
             </div>
           </div>
 
+          {/* Settings toggles */}
           <div className="toggles" style={{ marginBottom: 12 }}>
             <div className="toggle">
-              <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={sessionMode}
+                onChange={(e) => setSessionMode(e.target.checked)}
+              />
               <span>Session Mode (1 step)</span>
             </div>
             <div className="toggle">
-              <input type="checkbox" checked={dyslexiaMode} onChange={(e) => setDyslexiaMode(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={dyslexiaMode}
+                onChange={(e) => setDyslexiaMode(e.target.checked)}
+              />
               <span>Dyslexia-friendly</span>
             </div>
             <div className="toggle">
-              <input type="checkbox" checked={plainLanguage} onChange={(e) => setPlainLanguage(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={plainLanguage}
+                onChange={(e) => setPlainLanguage(e.target.checked)}
+              />
               <span>Plain language</span>
             </div>
             <div className="toggle">
-              <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={readAloud}
+                onChange={(e) => setReadAloud(e.target.checked)}
+              />
               <span>Read aloud</span>
             </div>
             <div className="toggle">
-              <input type="checkbox" checked={focusMode} onChange={(e) => setFocusMode(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={focusMode}
+                onChange={(e) => setFocusMode(e.target.checked)}
+              />
               <span>Focus mode</span>
             </div>
           </div>
 
+          {/* Learning profile */}
           <div style={{ marginBottom: 12 }}>
             <div className="sectionTitle">Learning profile (optional)</div>
             <div className="toggles">
@@ -209,13 +235,18 @@ export default function Page() {
                 ["ell", "English learner (ELL)"]
               ].map(([k, label]) => (
                 <div className="toggle" key={k}>
-                  <input type="checkbox" checked={learningProfile[k]} onChange={() => toggleProfile(k)} />
+                  <input
+                    type="checkbox"
+                    checked={learningProfile[k]}
+                    onChange={() => toggleProfile(k)}
+                  />
                   <span>{label}</span>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Selectors */}
           <div className="row">
             <div>
               <label>Subject</label>
@@ -228,6 +259,7 @@ export default function Page() {
                 <option>General</option>
               </select>
             </div>
+
             <div>
               <label>Level</label>
               <select value={level} onChange={(e) => setLevel(e.target.value)}>
@@ -238,6 +270,7 @@ export default function Page() {
                 <option>Adult learner</option>
               </select>
             </div>
+
             <div>
               <label>Teaching style</label>
               <select value={style} onChange={(e) => setStyle(e.target.value)}>
@@ -248,12 +281,14 @@ export default function Page() {
                 <option>Quiz me</option>
               </select>
             </div>
+
             <div>
               <label>Attempts (unlock final answer)</label>
               <input type="text" value={`${attempts}`} readOnly />
             </div>
           </div>
 
+          {/* Input */}
           <div style={{ marginTop: 12 }}>
             <label>
               {sessionMode
@@ -275,6 +310,7 @@ export default function Page() {
             />
           </div>
 
+          {/* Buttons */}
           <div className="btnRow" style={{ marginTop: 12 }}>
             {!sessionMode && (
               <button onClick={sendNormal} disabled={loading}>
@@ -309,6 +345,7 @@ export default function Page() {
             )}
           </div>
 
+          {/* Reply */}
           {reply && (
             <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
               <div className="reply" style={{ fontSize: 15 }}>
@@ -317,6 +354,7 @@ export default function Page() {
             </div>
           )}
 
+          {/* Transcript */}
           {sessionMode && history.length > 0 && (
             <>
               <hr />
@@ -331,67 +369,7 @@ export default function Page() {
                       borderRadius: 14,
                       background: m.role === "student" ? "var(--blueSoft)" : "#fff",
                       border: "1px solid var(--border)"
-                    }} <hr />
-
-<div style={{ marginTop: 10 }}>
-  <div className="sectionTitle">Pricing (Early Access)</div>
-
-  <div className="pricingGrid">
-    <div className="plan">
-      <div className="planTop">
-        <div>
-          <div className="planName">Student</div>
-          <div className="small">For individual learners</div>
-        </div>
-        <div className="planTag">Popular</div>
-      </div>
-      <div className="price">$7<span className="small">/mo</span></div>
-      <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
-      <div style={{ marginTop: 12 }}>
-        <button className="btnSecondary">Join waitlist</button>
-      </div>
-    </div>
-
-    <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
-      <div className="planTop">
-        <div>
-          <div className="planName">Family</div>
-          <div className="small">Up to 3 students</div>
-        </div>
-        <div className="planTag">Best value</div>
-      </div>
-      <div className="price">$15<span className="small">/mo</span></div>
-      <div className="small">One household plan for siblings — same safe tutoring experience.</div>
-      <div style={{ marginTop: 12 }}>
-        <button>Join waitlist</button>
-      </div>
-    </div>
-
-    <div className="plan">
-      <div className="planTop">
-        <div>
-          <div className="planName">School Pilot</div>
-          <div className="small">Classroom or district access</div>
-        </div>
-        <div className="planTag">B2B</div>
-      </div>
-      <div className="price">Custom</div>
-      <div className="small">Pilot with reporting, policy alignment, and admin onboarding.</div>
-      <div style={{ marginTop: 12 }}>
-        <button className="btnSecondary">Request pilot</button>
-      </div>
-    </div>
-  </div>
-
-  <div className="ctaBar">
-    <div>
-      <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Get Early Access</div>
-      <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
-    </div>
-    <button>Join waitlist</button>
-  </div>
-</div>
-
+                    }}
                   >
                     <div style={{ fontWeight: 800, marginBottom: 4 }}>
                       {m.role === "student" ? "Student" : "Tutor"}
@@ -400,94 +378,75 @@ export default function Page() {
                   </div>
                 ))}
               </div>
-               <hr />
-
-<div style={{ marginTop: 10 }}>
-  <div className="sectionTitle">Pricing (Early Access)</div>
-
-  <div className="pricingGrid">
-    <div className="plan">
-      <div className="planTop">
-        <div>
-          <div className="planName">Student</div>
-          <div className="small">For individual learners</div>
-        </div>
-        <div className="planTag">Popular</div>
-      </div>
-      <div className="price">$7<span className="small">/mo</span></div>
-      <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
-      <div style={{ marginTop: 12 }}>
-        <button className="btnSecondary">Join waitlist</button>
-      </div>
-    </div>
-
-    <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
-      <div className="planTop">
-        <div>
-          <div className="planName">Family</div>
-          <div className="small">Up to 3 students</div>
-        </div>
-        <div className="planTag">Best value</div>
-      </div>
-      <div className="price">$15<span className="small">/mo</span></div>
-      <div className="small">One household plan for siblings — same safe tutoring experience.</div>
-      <div style={{ marginTop: 12 }}>
-        <button>Join waitlist</button>
-      </div>
-    </div>
-
-    <div className="plan">
-      <div className="planTop">
-        <div>
-          <div className="planName">School Pilot</div>
-          <div className="small">Classroom or district access</div>
-        </div>
-        <div className="planTag">B2B</div>
-      </div>
-      <div className="price">Custom</div>
-      <div className="small">Pilot with reporting, policy alignment, and admin onboarding.</div>
-      <div style={{ marginTop: 12 }}>
-        <button className="btnSecondary">Request pilot</button>
-      </div>
-    </div>
-  </div>
-
-  <div className="ctaBar">
-    <div>
-      <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Get Early Access</div>
-      <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
-    </div>
-    <button>Join waitlist</button>
-  </div>
-</div>
-
-  <div className="row">
-    <div className="card">
-      <b>Student</b>
-      <p className="small">For individual learners</p>
-      <h2>$7 / month</h2>
-      <button className="btnSecondary">Join waitlist</button>
-    </div>
-
-    <div className="card">
-      <b>Family</b>
-      <p className="small">Up to 3 students</p>
-      <h2>$15 / month</h2>
-      <button className="btnSecondary">Join waitlist</button>
-    </div>
-
-    <div className="card">
-      <b>School Pilot</b>
-      <p className="small">District or classroom access</p>
-      <h2>Contact us</h2>
-      <button className="btnSecondary">Request pilot</button>
-    </div>
-  </div>
-</div>
-  
             </>
           )}
 
+          {/* Pricing */}
+          <hr />
+          <div style={{ marginTop: 10 }}>
+            <div className="sectionTitle">Pricing (Early Access)</div>
+
+            <div className="pricingGrid">
+              <div className="plan">
+                <div className="planTop">
+                  <div>
+                    <div className="planName">Student</div>
+                    <div className="small">For individual learners</div>
+                  </div>
+                  <div className="planTag">Popular</div>
+                </div>
+                <div className="price">
+                  $7<span className="small">/mo</span>
+                </div>
+                <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
+                <div style={{ marginTop: 12 }}>
+                  <button className="btnSecondary">Join waitlist</button>
+                </div>
+              </div>
+
+              <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
+                <div className="planTop">
+                  <div>
+                    <div className="planName">Family</div>
+                    <div className="small">Up to 3 students</div>
+                  </div>
+                  <div className="planTag">Best value</div>
+                </div>
+                <div className="price">
+                  $15<span className="small">/mo</span>
+                </div>
+                <div className="small">One household plan for siblings — same safe tutoring experience.</div>
+                <div style={{ marginTop: 12 }}>
+                  <button>Join waitlist</button>
+                </div>
+              </div>
+
+              <div className="plan">
+                <div className="planTop">
+                  <div>
+                    <div className="planName">School Pilot</div>
+                    <div className="small">Classroom or district access</div>
+                  </div>
+                  <div className="planTag">B2B</div>
+                </div>
+                <div className="price">Custom</div>
+                <div className="small">Pilot with policy alignment, onboarding, and reporting options.</div>
+                <div style={{ marginTop: 12 }}>
+                  <button className="btnSecondary">Request pilot</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="ctaBar">
+              <div>
+                <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Get Early Access</div>
+                <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
+              </div>
+              <button>Join waitlist</button>
+            </div>
+          </div>
+
+          {/* Footer trust */}
           <div className="small" style={{ marginTop: 16, textAlign: "center" }}>
             School-safe tutoring experience: step-by-step guidance that encourages student thinking.
             <br />
