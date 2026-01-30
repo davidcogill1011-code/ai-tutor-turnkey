@@ -1,6 +1,4 @@
-"use client"; 
-const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScvsMNJmd0Kgj8ouhP_VKs1H5lDsO3LtvLdtjHCtx7LDDEv2Q/viewform?usp=header";
-
+"use client";
 
 import { useMemo, useRef, useState } from "react";
 
@@ -24,10 +22,8 @@ const defaultProfile = {
 };
 
 export default function Page() {
-    const WAITLIST_URL =
+  const WAITLIST_URL =
     "https://docs.google.com/forms/d/e/1FAIpQLScvsMNJmd0Kgj8ouhP_VKs1H5lDsO3LtvLdtjHCtx7LDDEv2Q/viewform?usp=header";
-
-  const WAITLIST_URL = "https://forms.gle/xxxxxxxxxxxx";
 
   const [subject, setSubject] = useState("Math");
   const [level, setLevel] = useState("Middle School");
@@ -100,7 +96,6 @@ export default function Page() {
         })
       });
 
-      // If server returns non-JSON, this would throw and we fall into catch
       const data = await r.json();
       const out = data.reply || data.error || "No response.";
       setReply(out);
@@ -143,6 +138,17 @@ export default function Page() {
   }
 
   const inActiveSession = sessionMode && history.length > 0;
+
+  const WaitlistBtn = ({ children, variant = "primary" }) => (
+    <a
+      className={`btnLink ${variant === "secondary" ? "btnSecondaryLink" : ""}`}
+      href={WAITLIST_URL}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {children}
+    </a>
+  );
 
   return (
     <>
@@ -188,43 +194,23 @@ export default function Page() {
           {/* Settings toggles */}
           <div className="toggles" style={{ marginBottom: 12 }}>
             <div className="toggle">
-              <input
-                type="checkbox"
-                checked={sessionMode}
-                onChange={(e) => setSessionMode(e.target.checked)}
-              />
+              <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
               <span>Session Mode (1 step)</span>
             </div>
             <div className="toggle">
-              <input
-                type="checkbox"
-                checked={dyslexiaMode}
-                onChange={(e) => setDyslexiaMode(e.target.checked)}
-              />
+              <input type="checkbox" checked={dyslexiaMode} onChange={(e) => setDyslexiaMode(e.target.checked)} />
               <span>Dyslexia-friendly</span>
             </div>
             <div className="toggle">
-              <input
-                type="checkbox"
-                checked={plainLanguage}
-                onChange={(e) => setPlainLanguage(e.target.checked)}
-              />
+              <input type="checkbox" checked={plainLanguage} onChange={(e) => setPlainLanguage(e.target.checked)} />
               <span>Plain language</span>
             </div>
             <div className="toggle">
-              <input
-                type="checkbox"
-                checked={readAloud}
-                onChange={(e) => setReadAloud(e.target.checked)}
-              />
+              <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
               <span>Read aloud</span>
             </div>
             <div className="toggle">
-              <input
-                type="checkbox"
-                checked={focusMode}
-                onChange={(e) => setFocusMode(e.target.checked)}
-              />
+              <input type="checkbox" checked={focusMode} onChange={(e) => setFocusMode(e.target.checked)} />
               <span>Focus mode</span>
             </div>
           </div>
@@ -242,11 +228,7 @@ export default function Page() {
                 ["ell", "English learner (ELL)"]
               ].map(([k, label]) => (
                 <div className="toggle" key={k}>
-                  <input
-                    type="checkbox"
-                    checked={learningProfile[k]}
-                    onChange={() => toggleProfile(k)}
-                  />
+                  <input type="checkbox" checked={learningProfile[k]} onChange={() => toggleProfile(k)} />
                   <span>{label}</span>
                 </div>
               ))}
@@ -388,7 +370,7 @@ export default function Page() {
             </>
           )}
 
-          {/* Pricing */}
+          {/* Pricing + Waitlist */}
           <hr />
           <div style={{ marginTop: 10 }}>
             <div className="sectionTitle">Pricing (Early Access)</div>
@@ -407,15 +389,8 @@ export default function Page() {
                 </div>
                 <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
                 <div style={{ marginTop: 12 }}>
-                  <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
- <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
-  <button className="btnSecondary">Request pilot</button>
-</a>
-
- <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
-  <button className="btnSecondary">Request pilot</button>
-</a>
-               </div>
+                  <WaitlistBtn variant="secondary">Join waitlist</WaitlistBtn>
+                </div>
               </div>
 
               <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
@@ -431,7 +406,7 @@ export default function Page() {
                 </div>
                 <div className="small">One household plan for siblings — same safe tutoring experience.</div>
                 <div style={{ marginTop: 12 }}>
-                  <button>Join waitlist</button>
+                  <WaitlistBtn>Join waitlist</WaitlistBtn>
                 </div>
               </div>
 
@@ -446,7 +421,7 @@ export default function Page() {
                 <div className="price">Custom</div>
                 <div className="small">Pilot with policy alignment, onboarding, and reporting options.</div>
                 <div style={{ marginTop: 12 }}>
-                  <button className="btnSecondary">Request pilot</button>
+                  <WaitlistBtn variant="secondary">Request pilot</WaitlistBtn>
                 </div>
               </div>
             </div>
@@ -456,7 +431,7 @@ export default function Page() {
                 <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Get Early Access</div>
                 <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
               </div>
-              <button>Join waitlist</button>
+              <WaitlistBtn>Join waitlist</WaitlistBtn>
             </div>
           </div>
 
