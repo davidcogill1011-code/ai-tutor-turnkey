@@ -22,6 +22,8 @@ const defaultProfile = {
 };
 
 export default function Page() {
+  const WAITLIST_URL = "https://forms.gle/xxxxxxxxxxxx";
+
   const [subject, setSubject] = useState("Math");
   const [level, setLevel] = useState("Middle School");
   const [style, setStyle] = useState("Socratic");
@@ -400,8 +402,14 @@ export default function Page() {
                 </div>
                 <div className="small">Step-by-step tutoring across subjects + learning supports.</div>
                 <div style={{ marginTop: 12 }}>
-                  <button className="btnSecondary">Join waitlist</button>
-                </div>
+                  <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
+  <button className="btnSecondary">Join waitlist</button>
+</a>
+
+ <a href={WAITLIST_URL} target="_blank" rel="noreferrer">
+  <button className="btnSecondary">Request pilot</button>
+</a>
+               </div>
               </div>
 
               <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
