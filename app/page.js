@@ -24,6 +24,9 @@ const defaultProfile = {
 };
 
 export default function Page() {
+    const WAITLIST_URL =
+    "https://docs.google.com/forms/d/e/1FAIpQLScvsMNJmd0Kgj8ouhP_VKs1H5lDsO3LtvLdtjHCtx7LDDEv2Q/viewform?usp=header";
+
   const WAITLIST_URL = "https://forms.gle/xxxxxxxxxxxx";
 
   const [subject, setSubject] = useState("Math");
