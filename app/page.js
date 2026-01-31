@@ -65,7 +65,7 @@ export default function Page() {
   const WAITLIST_URL =
     "https://docs.google.com/forms/d/e/1FAIpQLScvsMNJmd0Kgj8ouhP_VKs1H5lDsO3LtvLdtjHCtx7LDDEv2Q/viewform?usp=header";
 
-  const [view, setView] = useState("tutor"); // tutor | practice | report
+  const [view, setView] = useState("tutor"); // tutor | practice | report | proof
 
   const [subject, setSubject] = useState("Math");
   const [level, setLevel] = useState("Middle School");
@@ -74,6 +74,9 @@ export default function Page() {
   const [message, setMessage] = useState("");
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Proof check input
+  const [work, setWork] = useState("");
 
   // Modes
   const [sessionMode, setSessionMode] = useState(true);
@@ -88,9 +91,6 @@ export default function Page() {
   const [history, setHistory] = useState([]);
   const [attempts, setAttempts] = useState(0);
 
-  // mastery store by key + event log for weekly report
-  // mastery: { "<Subject>|<Level>|<Skill>": { correct,total,lastAt,streak } }
-  // events: [{ts, subject, level, skill, ok}]
   const [mastery, setMastery] = useState({});
   const [events, setEvents] = useState([]);
 
@@ -165,17 +165,18 @@ export default function Page() {
     ]);
   }
 
-  async function callTutor({ text, isAttempt, task }) {
+  async function callAPI({ text, isAttempt, task }) {
     setLoading(true);
     setReply("");
 
     try {
-      const nextHistory = sessionMode
-        ? [...history, ...(text ? [{ role: "student", text }] : [])]
-        : history;
+      const nextHistory =
+        task === "tutor" && sessionMode
+          ? [...history, ...(text ? [{ role: "student", text }] : [])]
+          : history;
 
-      const nextAttempts = sessionMode && isAttempt ? attempts + 1 : attempts;
-      if (sessionMode && isAttempt) setAttempts(nextAttempts);
+      const nextAttempts = task === "tutor" && sessionMode && isAttempt ? attempts + 1 : attempts;
+      if (task === "tutor" && sessionMode && isAttempt) setAttempts(nextAttempts);
 
       const r = await fetch("/api/tutor", {
         method: "POST",
@@ -202,14 +203,9 @@ export default function Page() {
 
       if (readAloud) speak(out);
 
-      if ((task || "tutor") === "tutor" && sessionMode) {
-        setHistory([...nextHistory, { role: "tutor", text: out }]);
-      }
+      if (task === "tutor" && sessionMode) setHistory([...nextHistory, { role: "tutor", text: out }]);
 
-      // tracking: only when tutoring (feedback exists)
-      if ((task || "tutor") === "tutor") {
-        updateTrackingFromReply(out);
-      }
+      if (task === "tutor") updateTrackingFromReply(out);
     } catch {
       setReply("Could not reach tutor API.");
     } finally {
@@ -221,17 +217,17 @@ export default function Page() {
     if (!message.trim()) return;
     setHistory([]);
     setAttempts(0);
-    await callTutor({ text: message, isAttempt: false, task: "tutor" });
+    await callAPI({ text: message, isAttempt: false, task: "tutor" });
   }
 
   async function submitStep() {
     if (!message.trim()) return;
-    await callTutor({ text: message, isAttempt: true, task: "tutor" });
+    await callAPI({ text: message, isAttempt: true, task: "tutor" });
   }
 
   async function sendNormal() {
     if (!message.trim()) return;
-    await callTutor({ text: message, isAttempt: false, task: "tutor" });
+    await callAPI({ text: message, isAttempt: false, task: "tutor" });
   }
 
   function resetSession() {
@@ -253,30 +249,23 @@ export default function Page() {
   const inActiveSession = sessionMode && history.length > 0;
 
   const WaitlistBtn = ({ children, variant = "primary" }) => (
-    <a
-      className={`btnLink ${variant === "secondary" ? "btnSecondaryLink" : ""}`}
-      href={WAITLIST_URL}
-      target="_blank"
-      rel="noreferrer"
-    >
+    <a className={`btnLink ${variant === "secondary" ? "btnSecondaryLink" : ""}`} href={WAITLIST_URL} target="_blank" rel="noreferrer">
       {children}
     </a>
   );
 
-  // Mastery rows for current subject/level
   const masteryRows = useMemo(() => {
     const rows = [];
     for (const [k, v] of Object.entries(mastery)) {
       const [s, l, skill] = k.split("|");
       if (s !== subject || l !== level) continue;
       const pct = v.total ? Math.round((v.correct / v.total) * 100) : 0;
-      rows.push({ skill, pct, correct: v.correct, total: v.total, streak: v.streak, lastAt: v.lastAt });
+      rows.push({ skill, pct, correct: v.correct, total: v.total, streak: v.streak });
     }
-    rows.sort((a, b) => a.pct - b.pct || b.total - a.total); // weakest first for plan
+    rows.sort((a, b) => a.pct - b.pct || b.total - a.total);
     return rows.slice(0, 10);
   }, [mastery, subject, level]);
 
-  // Learning plan: pick top 3 weakest skills (or defaults)
   const learningPlan = useMemo(() => {
     const defaults =
       subject === "Math"
@@ -291,7 +280,6 @@ export default function Page() {
     }));
   }, [masteryRows, subject]);
 
-  // Recommended next skill = weakest
   const recommendedSkill = learningPlan[0]?.skill || (subject === "Math" ? "Inverse operations" : "Main idea");
   const [practiceSkill, setPracticeSkill] = useState(recommendedSkill);
 
@@ -299,7 +287,6 @@ export default function Page() {
     setPracticeSkill(recommendedSkill);
   }, [recommendedSkill]);
 
-  // Weekly report (last 7 days)
   const weekly = useMemo(() => {
     const now = Date.now();
     const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
@@ -307,10 +294,9 @@ export default function Page() {
     const filtered = events.filter((e) => e.ts >= weekAgo && e.subject === subject && e.level === level);
     const bySkill = {};
     for (const e of filtered) {
-      const k = e.skill;
-      bySkill[k] = bySkill[k] || { ok: 0, total: 0 };
-      bySkill[k].total += 1;
-      if (e.ok) bySkill[k].ok += 1;
+      bySkill[e.skill] = bySkill[e.skill] || { ok: 0, total: 0 };
+      bySkill[e.skill].total += 1;
+      if (e.ok) bySkill[e.skill].ok += 1;
     }
     const rows = Object.entries(bySkill).map(([skill, v]) => ({
       skill,
@@ -337,7 +323,13 @@ export default function Page() {
 
   async function generatePractice() {
     const prompt = `Create a practice set focused on: ${practiceSkill}.`;
-    await callTutor({ text: prompt, isAttempt: false, task: "practice" });
+    await callAPI({ text: prompt, isAttempt: false, task: "practice" });
+  }
+
+  async function gradeWork() {
+    if (!work.trim()) return;
+    const prompt = `Problem + student work:\n\n${work}\n\nGrade it using the rubric.`;
+    await callAPI({ text: prompt, isAttempt: false, task: "grade" });
   }
 
   return (
@@ -359,18 +351,11 @@ export default function Page() {
         {/* Tabs */}
         <div className="card" style={{ marginTop: 12, marginBottom: 12 }}>
           <div className="btnRow">
-            <button className={view === "tutor" ? "" : "btnSecondary"} onClick={() => setView("tutor")}>
-              Tutor
-            </button>
-            <button className={view === "practice" ? "" : "btnSecondary"} onClick={() => setView("practice")}>
-              Practice
-            </button>
-            <button className={view === "report" ? "" : "btnSecondary"} onClick={() => setView("report")}>
-              Report
-            </button>
-            <button className="btnSecondary" onClick={clearProgress}>
-              Clear progress
-            </button>
+            <button className={view === "tutor" ? "" : "btnSecondary"} onClick={() => setView("tutor")}>Tutor</button>
+            <button className={view === "practice" ? "" : "btnSecondary"} onClick={() => setView("practice")}>Practice</button>
+            <button className={view === "proof" ? "" : "btnSecondary"} onClick={() => setView("proof")}>Proof Check</button>
+            <button className={view === "report" ? "" : "btnSecondary"} onClick={() => setView("report")}>Report</button>
+            <button className="btnSecondary" onClick={clearProgress}>Clear progress</button>
           </div>
 
           <div className="small" style={{ marginTop: 10 }}>
@@ -378,27 +363,17 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Learning plan (always visible) */}
+        {/* Adaptive plan */}
         <div className="card" style={{ marginBottom: 12 }}>
           <div className="sectionTitle">Adaptive learning plan</div>
           <div className="small" style={{ marginBottom: 10 }}>
-            Automatically recommends what to practice next based on recent performance.
+            Recommends what to practice next based on recent performance.
           </div>
 
           <div style={{ display: "grid", gap: 10 }}>
             {learningPlan.map((p) => (
-              <div
-                key={p.step}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 14,
-                  border: "1px solid var(--border)",
-                  background: "#fff"
-                }}
-              >
-                <div style={{ fontWeight: 900 }}>
-                  Step {p.step}: {p.skill}
-                </div>
+              <div key={p.step} style={{ padding: "10px 12px", borderRadius: 14, border: "1px solid var(--border)", background: "#fff" }}>
+                <div style={{ fontWeight: 900 }}>Step {p.step}: {p.skill}</div>
                 <div className="small">{p.goal}</div>
               </div>
             ))}
@@ -409,30 +384,13 @@ export default function Page() {
               <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>Recommended next</div>
               <div className="small">{recommendedSkill}</div>
             </div>
-            <button onClick={() => { setView("practice"); }} >Open Practice</button>
+            <button onClick={() => setView("practice")}>Open Practice</button>
           </div>
         </div>
 
         {/* Tutor */}
         {view === "tutor" && (
           <div className="card">
-            <div
-              className="cardTight"
-              style={{
-                background: "var(--blueSoft)",
-                border: "1px solid rgba(37,99,235,.18)",
-                borderRadius: 16,
-                marginBottom: 12
-              }}
-            >
-              <div className="sectionTitle">How it works</div>
-              <div className="small" style={{ lineHeight: 1.6 }}>
-                <div>• <b>Coach Mode:</b> roadmap + checks that keep the student thinking.</div>
-                <div>• <b>Session Mode:</b> one micro-step at a time to reduce overwhelm.</div>
-                <div>• <b>Tracking:</b> skills are tagged automatically for measurable progress.</div>
-              </div>
-            </div>
-
             <div className="toggles" style={{ marginBottom: 12 }}>
               <div className="toggle">
                 <input type="checkbox" checked={sessionMode} onChange={(e) => setSessionMode(e.target.checked)} />
@@ -441,10 +399,6 @@ export default function Page() {
               <div className="toggle">
                 <input type="checkbox" checked={coachMode} onChange={(e) => setCoachMode(e.target.checked)} />
                 <span>Coach Mode (Roadmap + checks)</span>
-              </div>
-              <div className="toggle">
-                <input type="checkbox" checked={dyslexiaMode} onChange={(e) => setDyslexiaMode(e.target.checked)} />
-                <span>Dyslexia-friendly</span>
               </div>
               <div className="toggle">
                 <input type="checkbox" checked={plainLanguage} onChange={(e) => setPlainLanguage(e.target.checked)} />
@@ -460,25 +414,6 @@ export default function Page() {
               </div>
             </div>
 
-            <div style={{ marginBottom: 12 }}>
-              <div className="sectionTitle">Learning profile (optional)</div>
-              <div className="toggles">
-                {[
-                  ["adhd", "ADHD / Focus support"],
-                  ["dyslexia", "Dyslexia support"],
-                  ["dyscalculia", "Dyscalculia support"],
-                  ["autism", "Autism-friendly"],
-                  ["anxiety", "Anxiety-sensitive"],
-                  ["ell", "English learner (ELL)"]
-                ].map(([k, label]) => (
-                  <div className="toggle" key={k}>
-                    <input type="checkbox" checked={learningProfile[k]} onChange={() => toggleProfile(k)} />
-                    <span>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className="row">
               <div>
                 <label>Subject</label>
@@ -491,6 +426,7 @@ export default function Page() {
                   <option>General</option>
                 </select>
               </div>
+
               <div>
                 <label>Level</label>
                 <select value={level} onChange={(e) => setLevel(e.target.value)}>
@@ -501,16 +437,7 @@ export default function Page() {
                   <option>Adult learner</option>
                 </select>
               </div>
-              <div>
-                <label>Teaching style</label>
-                <select value={style} onChange={(e) => setStyle(e.target.value)}>
-                  <option>Socratic</option>
-                  <option>Step-by-step</option>
-                  <option>Examples-first</option>
-                  <option>Visual descriptions</option>
-                  <option>Quiz me</option>
-                </select>
-              </div>
+
               <div>
                 <label>Attempts</label>
                 <input type="text" value={`${attempts}`} readOnly />
@@ -518,20 +445,8 @@ export default function Page() {
             </div>
 
             <div style={{ marginTop: 12 }}>
-              <label>
-                {sessionMode ? (inActiveSession ? "Your next step attempt" : "Problem to start a session") : "Student question"}
-              </label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={
-                  sessionMode
-                    ? inActiveSession
-                      ? "Type your next step (example: 'Subtract 5 from both sides')."
-                      : "Paste the problem (example: 'Solve 2x + 5 = 17')."
-                    : "Ask a question (example: 'How do I solve 2x + 5 = 17?')"
-                }
-              />
+              <label>{sessionMode ? (inActiveSession ? "Your next step attempt" : "Problem to start a session") : "Student question"}</label>
+              <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Paste the problem or your next step..." />
             </div>
 
             <div className="btnRow" style={{ marginTop: 12 }}>
@@ -566,36 +481,8 @@ export default function Page() {
 
             {reply && (
               <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
-                <div className="reply" style={{ fontSize: 15 }}>
-                  {reply}
-                </div>
+                <div className="reply" style={{ fontSize: 15 }}>{reply}</div>
               </div>
-            )}
-
-            {sessionMode && history.length > 0 && (
-              <>
-                <hr />
-                <div className="sectionTitle">Session transcript</div>
-                <div className="reply">
-                  {history.map((m, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        marginBottom: 10,
-                        padding: "10px 12px",
-                        borderRadius: 14,
-                        background: m.role === "student" ? "var(--blueSoft)" : "#fff",
-                        border: "1px solid var(--border)"
-                      }}
-                    >
-                      <div style={{ fontWeight: 800, marginBottom: 4 }}>
-                        {m.role === "student" ? "Student" : "Tutor"}
-                      </div>
-                      <div>{m.text}</div>
-                    </div>
-                  ))}
-                </div>
-              </>
             )}
           </div>
         )}
@@ -605,16 +492,11 @@ export default function Page() {
           <div className="card">
             <div className="sectionTitle">Practice generator</div>
             <div className="small" style={{ marginBottom: 10 }}>
-              Generates a practice set based on your level + selected skill. (No full solutions; hints only.)
+              Generates practice based on your selected skill (no full solutions; hints only).
             </div>
 
             <label>Practice skill</label>
-            <input
-              type="text"
-              value={practiceSkill}
-              onChange={(e) => setPracticeSkill(e.target.value)}
-              placeholder="Example: Inverse operations"
-            />
+            <input value={practiceSkill} onChange={(e) => setPracticeSkill(e.target.value)} />
 
             <div className="btnRow" style={{ marginTop: 12 }}>
               <button onClick={generatePractice} disabled={loading}>
@@ -627,9 +509,38 @@ export default function Page() {
 
             {reply && (
               <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
-                <div className="reply" style={{ fontSize: 15 }}>
-                  {reply}
-                </div>
+                <div className="reply" style={{ fontSize: 15 }}>{reply}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Proof Check */}
+        {view === "proof" && (
+          <div className="card">
+            <div className="sectionTitle">Student Proof Check</div>
+            <div className="small" style={{ marginBottom: 10 }}>
+              Paste the problem + your work. The tutor grades it like a teacher and gives one correction + next step.
+            </div>
+
+            <label>Paste problem + your work</label>
+            <textarea
+              value={work}
+              onChange={(e) => setWork(e.target.value)}
+              placeholder={`Example:\nProblem: 2x + 5 = 17\nMy work:\n2x = 12\nx = 6`}
+              style={{ minHeight: 160 }}
+            />
+
+            <div className="btnRow" style={{ marginTop: 12 }}>
+              <button onClick={gradeWork} disabled={loading}>
+                {loading ? "Grading..." : "Grade my work"}
+              </button>
+              <button className="btnSecondary" onClick={() => setWork("")}>Clear</button>
+            </div>
+
+            {reply && (
+              <div className="card" style={{ marginTop: 14, borderLeft: "6px solid var(--blue)" }}>
+                <div className="reply" style={{ fontSize: 15 }}>{reply}</div>
               </div>
             )}
           </div>
@@ -640,7 +551,7 @@ export default function Page() {
           <div className="card">
             <div className="sectionTitle">Weekly report</div>
             <div className="small" style={{ marginBottom: 10 }}>
-              Summary from the last 7 days (this device). Great for parents and school pilots.
+              Last 7 days (this device). Export for parents/schools.
             </div>
 
             <div className="row">
@@ -657,9 +568,7 @@ export default function Page() {
             </div>
 
             <div className="btnRow" style={{ marginTop: 12 }}>
-              <button onClick={exportWeeklyCSV} className="btnSecondary">
-                Download CSV
-              </button>
+              <button onClick={exportWeeklyCSV} className="btnSecondary">Download CSV</button>
             </div>
 
             <hr />
@@ -673,26 +582,10 @@ export default function Page() {
                   <div key={r.skill} style={{ display: "grid", gap: 6 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                       <div style={{ fontWeight: 900 }}>{r.skill}</div>
-                      <div className="small">
-                        {r.pct}% • {r.ok}/{r.total}
-                      </div>
+                      <div className="small">{r.pct}% • {r.ok}/{r.total}</div>
                     </div>
-                    <div
-                      style={{
-                        height: 10,
-                        borderRadius: 999,
-                        border: "1px solid var(--border)",
-                        background: "#fff",
-                        overflow: "hidden"
-                      }}
-                    >
-                      <div
-                        style={{
-                          height: "100%",
-                          width: `${clamp(r.pct, 0, 100)}%`,
-                          background: "var(--blue)"
-                        }}
-                      />
+                    <div style={{ height: 10, borderRadius: 999, border: "1px solid var(--border)", background: "#fff", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${clamp(r.pct, 0, 100)}%`, background: "var(--blue)" }} />
                     </div>
                   </div>
                 ))}
@@ -701,10 +594,9 @@ export default function Page() {
           </div>
         )}
 
-        {/* Pricing + Waitlist */}
+        {/* Pricing / waitlist */}
         <div className="card" style={{ marginTop: 12 }}>
           <div className="sectionTitle">Pricing (Early Access)</div>
-
           <div className="pricingGrid">
             <div className="plan">
               <div className="planTop">
@@ -714,13 +606,9 @@ export default function Page() {
                 </div>
                 <div className="planTag">Popular</div>
               </div>
-              <div className="price">
-                $7<span className="small">/mo</span>
-              </div>
-              <div className="small">Coach Mode + practice sets + weekly report.</div>
-              <div style={{ marginTop: 12 }}>
-                <WaitlistBtn variant="secondary">Join waitlist</WaitlistBtn>
-              </div>
+              <div className="price">$7<span className="small">/mo</span></div>
+              <div className="small">Coach Mode + Practice + Proof Check + Reports</div>
+              <div style={{ marginTop: 12 }}><WaitlistBtn variant="secondary">Join waitlist</WaitlistBtn></div>
             </div>
 
             <div className="plan" style={{ borderColor: "rgba(37,99,235,.28)" }}>
@@ -731,13 +619,9 @@ export default function Page() {
                 </div>
                 <div className="planTag">Best value</div>
               </div>
-              <div className="price">
-                $15<span className="small">/mo</span>
-              </div>
-              <div className="small">Multiple learners, shared parent reporting.</div>
-              <div style={{ marginTop: 12 }}>
-                <WaitlistBtn>Join waitlist</WaitlistBtn>
-              </div>
+              <div className="price">$15<span className="small">/mo</span></div>
+              <div className="small">Multiple learners + shared reporting</div>
+              <div style={{ marginTop: 12 }}><WaitlistBtn>Join waitlist</WaitlistBtn></div>
             </div>
 
             <div className="plan">
@@ -749,10 +633,8 @@ export default function Page() {
                 <div className="planTag">B2B</div>
               </div>
               <div className="price">Custom</div>
-              <div className="small">Pilot-ready reporting + onboarding options.</div>
-              <div style={{ marginTop: 12 }}>
-                <WaitlistBtn variant="secondary">Request pilot</WaitlistBtn>
-              </div>
+              <div className="small">Pilot-ready reporting + onboarding</div>
+              <div style={{ marginTop: 12 }}><WaitlistBtn variant="secondary">Request pilot</WaitlistBtn></div>
             </div>
           </div>
 
@@ -762,12 +644,6 @@ export default function Page() {
               <div className="small">Join the waitlist and help shape the first school-ready AI tutor.</div>
             </div>
             <WaitlistBtn>Join waitlist</WaitlistBtn>
-          </div>
-
-          <div className="small" style={{ marginTop: 16, textAlign: "center" }}>
-            School-safe tutoring experience: step-by-step guidance that encourages student thinking.
-            <br />
-            Please don’t enter sensitive personal information. Use in accordance with your school or family policies.
           </div>
         </div>
       </div>
