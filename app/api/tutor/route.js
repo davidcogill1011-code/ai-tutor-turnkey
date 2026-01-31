@@ -1,14 +1,14 @@
-
 export const runtime = "nodejs";
 
 /**
- * Teach-not-solve Tutor API
- * - task=tutor: interactive coaching (Roadmap + checks)
- * - task=practice: generates practice set (no full solutions, hints only)
- * - Includes ## Skills tags for tracking
+ * Teach-not-solve Tutor API (school-safe)
+ * Tasks:
+ * - tutor: interactive coaching (Roadmap + checks) + skill tags
+ * - practice: practice set generator (no full solutions; hints + answer checks)
+ * - grade: "Student Proof Check" – grades student work like a teacher and gives one correction + next step
  */
 
-function buildTutorPrompt({
+function buildPrompt({
   task,
   subject,
   level,
@@ -45,7 +45,7 @@ function buildTutorPrompt({
 
   const base = `
 You are "AI Tutor", a school-safe tutor that TEACHES and does NOT simply solve.
-You must act like an interactive tutor: ask, wait, check, then continue.
+Act like a real teacher: ask, wait, check, then continue.
 
 Context:
 - Task: ${task}
@@ -56,7 +56,7 @@ Context:
 - Coach Mode: ${coach ? "ON" : "OFF"}
 - Attempts so far: ${attempts || 0}
 
-Accessibility toggles:
+Accessibility:
 - Dyslexia-friendly: ${a.dyslexiaMode ? "ON" : "OFF"}
 - Plain language: ${a.plainLanguage ? "ON" : "OFF"}
 - Focus mode: ${a.focusMode ? "ON" : "OFF"}
@@ -69,15 +69,12 @@ Learning profile:
 - Anxiety-sensitive: ${flags.anxiety ? "YES" : "NO"}
 - English learner (ELL): ${flags.ell ? "YES" : "NO"}
 
-Non-negotiable rules:
+Non-negotiable:
 1) Do NOT provide the final answer immediately in tutoring.
 2) Prefer guiding questions + tiny hints.
 3) If asked for the final answer: only provide it if attempts >= 3; otherwise require one more attempt.
-4) Keep tone supportive and professional (school tone). No shaming language.
-
-CRITICAL: Skill tagging for progress tracking
-- Always include a final section called "## Skills" with 2–5 short skill tags.
-- Skills must be comma-separated, no bullets.
+4) Keep tone supportive and professional. No shame.
+5) Always include a final section "## Skills" with 2–5 comma-separated tags.
 
 Conversation so far:
 ${transcript}
@@ -90,14 +87,14 @@ User message:
     return `
 ${base}
 
-You are generating PRACTICE, not tutoring a single problem.
+You are generating PRACTICE (not tutoring a single problem).
 
-Rules for practice:
-- Create 6 questions aligned to the learner's level and the requested skill/topic.
+Rules:
+- Create 6 questions aligned to level and skill/topic.
 - Do NOT provide full solutions.
-- Provide a short hint for each question.
-- Include a very short "Answer check" (final numeric/choice only) but DO NOT show steps.
-- Keep questions varied (easy → medium → challenge).
+- Provide a short hint for each.
+- Provide "Answer check" final value/choice only (no steps).
+- Vary difficulty: easy → medium → challenge.
 
 OUTPUT FORMAT (exact):
 
@@ -116,6 +113,45 @@ OUTPUT FORMAT (exact):
 `;
   }
 
+  if (task === "grade") {
+    return `
+${base}
+
+You are doing a "Student Proof Check".
+The student pasted their work/step(s). Grade it like a teacher.
+
+Rules for grading:
+- Be strict but supportive.
+- Identify correctness and the FIRST mistake if any.
+- Do NOT rewrite the full solution.
+- Give ONE correction action only (the smallest fix).
+- Then give ONE next step question.
+- If the work is correct, praise briefly.
+- If incorrect, explain misconception in 1–2 lines.
+
+OUTPUT FORMAT (exact):
+
+## Grade
+Score: X/10
+Verdict: Correct / Partially correct / Incorrect
+
+## What you did well
+(1–2 lines)
+
+## First issue
+(If incorrect/partial: name the first mistake and why. If correct: "—")
+
+## Fix (one step)
+(One minimal correction instruction only)
+
+## Next step
+(One question/instruction; student's turn)
+
+## Skills
+(Comma-separated tags)
+`;
+  }
+
   // tutor task
   return `
 ${base}
@@ -123,8 +159,8 @@ ${base}
 Coach Mode behavior (if ON):
 - Provide a short Roadmap (3–5 steps) at the start of a session OR if the student changes the problem/topic.
 - Only one step at a time.
-- Ask a check-for-understanding question every ~2 tutor turns (brief).
-- If the student gives an incorrect step, briefly explain what's wrong and ask for a corrected attempt. Do not continue.
+- Ask a check-for-understanding question every ~2 tutor turns.
+- If incorrect step: brief feedback, ask for corrected attempt, do not continue.
 
 Output format rules:
 
@@ -132,16 +168,16 @@ If Mode = SESSION:
 Return EXACTLY these sections, in order:
 
 ## Feedback
-(✅ or ❌ + 1–2 short lines about the student's last step)
+(✅ or ❌ + 1–2 lines about the student's last step)
 
 ## Roadmap
-(Only include if this is the first tutor message of the session OR the student restarted/changed the problem. 3–5 steps max. If not needed, write: "—")
+(Only if first tutor message of the session or student changed problem; else "—")
 
 ## Next step
-(ONE instruction or question only. End with a prompt for the student to respond.)
+(ONE instruction/question only. End with a prompt for the student.)
 
 ## Check
-(One short question that confirms understanding. If it's not time for a check, write: "Answer with your step.")
+(One short understanding check; or "Answer with your step.")
 
 ## Skills
 (Comma-separated tags)
@@ -155,10 +191,10 @@ Return:
 ## Check Understanding
 ## Skills
 
-Style guidance:
-- Use math layout when helpful (aligned steps / mini tables).
-- If Plain language is ON: short sentences, simple words.
-- If Focus mode is ON: keep responses very short.
+Style:
+- Use math layout when helpful.
+- If Plain language ON: short sentences.
+- If Focus mode ON: keep very short.
 `;
 }
 
@@ -190,10 +226,31 @@ function demoReply({ task, mode }) {
    Answer check: x = 4
 
 ## How to use this
-Try #1–#3 first. If you get stuck, write your next step and ask the tutor to check it.
+Try #1–#3 first. If stuck, submit your next step to the tutor.
 
 ## Skills
 Linear equations, Inverse operations, Combining like terms`;
+  }
+
+  if (task === "grade") {
+    return `## Grade
+Score: 7/10
+Verdict: Partially correct
+
+## What you did well
+You identified the correct operation to remove the constant.
+
+## First issue
+You applied the operation to only one side of the equation.
+
+## Fix (one step)
+Apply the same operation to both sides.
+
+## Next step
+Rewrite the equation after doing that.
+
+## Skills
+Equation balance, Inverse operations, Linear equations`;
   }
 
   if (mode === "session") {
@@ -220,7 +277,7 @@ Problem interpretation, Linear equations, Inverse operations`;
 Learn the method step-by-step (teach-not-solve).
 
 ## Roadmap
-1) Identify the target (what you’re solving for)
+1) Identify the target
 2) Undo +/− first
 3) Undo ×/÷ next
 4) Check by substituting back
@@ -229,10 +286,10 @@ Learn the method step-by-step (teach-not-solve).
 What is the problem asking you to find?
 
 ## Hint
-Look for the letter (like x). That’s usually what we solve for.
+Look for the letter (like x).
 
 ## Check Understanding
-What does x represent in this problem?
+What does x represent?
 
 ## Skills
 Problem interpretation, Linear equations, Inverse operations`;
@@ -264,7 +321,7 @@ export async function POST(req) {
       return Response.json({ reply: demoReply({ task, mode }) });
     }
 
-    const prompt = buildTutorPrompt({
+    const prompt = buildPrompt({
       task,
       subject,
       level,
