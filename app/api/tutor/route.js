@@ -1,14 +1,15 @@
-// app/api/tutor/route.js
+
 export const runtime = "nodejs";
 
 /**
- * Premium "Teach-Not-Solve" Tutor API
- * - Coach Mode (Roadmap + checks) for a one-of-a-kind interactive feel
- * - Session Mode: one micro-step at a time, with feedback + next step
- * - Safe defaults + Demo mode fallback if OPENAI_API_KEY missing
+ * Teach-not-solve Tutor API
+ * - task=tutor: interactive coaching (Roadmap + checks)
+ * - task=practice: generates practice set (no full solutions, hints only)
+ * - Includes ## Skills tags for tracking
  */
 
 function buildTutorPrompt({
+  task,
   subject,
   level,
   style,
@@ -42,11 +43,12 @@ function buildTutorPrompt({
           .join("\n")
       : "(none)";
 
-  return `
+  const base = `
 You are "AI Tutor", a school-safe tutor that TEACHES and does NOT simply solve.
 You must act like an interactive tutor: ask, wait, check, then continue.
 
 Context:
+- Task: ${task}
 - Subject: ${subject || "General"}
 - Level: ${level || "Unknown"}
 - Preferred style: ${style || "Socratic + step-by-step"}
@@ -68,16 +70,61 @@ Learning profile:
 - English learner (ELL): ${flags.ell ? "YES" : "NO"}
 
 Non-negotiable rules:
-1) Do NOT provide the final answer immediately.
+1) Do NOT provide the final answer immediately in tutoring.
 2) Prefer guiding questions + tiny hints.
 3) If asked for the final answer: only provide it if attempts >= 3; otherwise require one more attempt.
 4) Keep tone supportive and professional (school tone). No shaming language.
+
+CRITICAL: Skill tagging for progress tracking
+- Always include a final section called "## Skills" with 2–5 short skill tags.
+- Skills must be comma-separated, no bullets.
+
+Conversation so far:
+${transcript}
+
+User message:
+"""${studentMessage}"""
+`;
+
+  if (task === "practice") {
+    return `
+${base}
+
+You are generating PRACTICE, not tutoring a single problem.
+
+Rules for practice:
+- Create 6 questions aligned to the learner's level and the requested skill/topic.
+- Do NOT provide full solutions.
+- Provide a short hint for each question.
+- Include a very short "Answer check" (final numeric/choice only) but DO NOT show steps.
+- Keep questions varied (easy → medium → challenge).
+
+OUTPUT FORMAT (exact):
+
+## Practice set
+1) Question...
+   Hint: ...
+   Answer check: ...
+
+(repeat 6 items)
+
+## How to use this
+(2–4 lines)
+
+## Skills
+(Comma-separated tags)
+`;
+  }
+
+  // tutor task
+  return `
+${base}
 
 Coach Mode behavior (if ON):
 - Provide a short Roadmap (3–5 steps) at the start of a session OR if the student changes the problem/topic.
 - Only one step at a time.
 - Ask a check-for-understanding question every ~2 tutor turns (brief).
-- If the student gives an incorrect step, briefly explain what's wrong and ask for a corrected attempt. Do not continue to the next step.
+- If the student gives an incorrect step, briefly explain what's wrong and ask for a corrected attempt. Do not continue.
 
 Output format rules:
 
@@ -96,6 +143,9 @@ Return EXACTLY these sections, in order:
 ## Check
 (One short question that confirms understanding. If it's not time for a check, write: "Answer with your step.")
 
+## Skills
+(Comma-separated tags)
+
 If Mode = NORMAL:
 Return:
 ## Goal
@@ -103,21 +153,49 @@ Return:
 ## Step 1 (Your turn)
 ## Hint
 ## Check Understanding
+## Skills
 
 Style guidance:
 - Use math layout when helpful (aligned steps / mini tables).
 - If Plain language is ON: short sentences, simple words.
 - If Focus mode is ON: keep responses very short.
-
-Conversation so far:
-${transcript}
-
-Student message:
-"""${studentMessage}"""
 `;
 }
 
-function demoReply({ mode }) {
+function demoReply({ task, mode }) {
+  if (task === "practice") {
+    return `## Practice set
+1) Solve: 2x + 5 = 17
+   Hint: Undo +5 first.
+   Answer check: x = 6
+
+2) Solve: 3x - 4 = 11
+   Hint: Add 4 to both sides.
+   Answer check: x = 5
+
+3) Solve: x/4 + 2 = 7
+   Hint: Subtract 2 first.
+   Answer check: x = 20
+
+4) Solve: 5(x - 1) = 20
+   Hint: Divide by 5 first.
+   Answer check: x = 5
+
+5) Solve: 2x + 3x = 25
+   Hint: Combine like terms.
+   Answer check: x = 5
+
+6) Challenge: 4(x + 2) - 3 = 21
+   Hint: Add 3, then divide by 4.
+   Answer check: x = 4
+
+## How to use this
+Try #1–#3 first. If you get stuck, write your next step and ask the tutor to check it.
+
+## Skills
+Linear equations, Inverse operations, Combining like terms`;
+  }
+
   if (mode === "session") {
     return `## Feedback
 ✅ Demo mode is on (no API key set).
@@ -132,7 +210,10 @@ function demoReply({ mode }) {
 What is the variable we are trying to find?
 
 ## Check
-Answer in one short sentence.`;
+Answer with your step.
+
+## Skills
+Problem interpretation, Linear equations, Inverse operations`;
   }
 
   return `## Goal
@@ -151,7 +232,10 @@ What is the problem asking you to find?
 Look for the letter (like x). That’s usually what we solve for.
 
 ## Check Understanding
-What does x represent in this problem?`;
+What does x represent in this problem?
+
+## Skills
+Problem interpretation, Linear equations, Inverse operations`;
 }
 
 export async function POST(req) {
@@ -159,6 +243,7 @@ export async function POST(req) {
     const body = await req.json();
 
     const {
+      task = "tutor",
       subject,
       level,
       style,
@@ -175,12 +260,12 @@ export async function POST(req) {
       return Response.json({ error: "Missing message" }, { status: 400 });
     }
 
-    // Demo fallback so the app still works without a key
     if (!process.env.OPENAI_API_KEY) {
-      return Response.json({ reply: demoReply({ mode }) });
+      return Response.json({ reply: demoReply({ task, mode }) });
     }
 
     const prompt = buildTutorPrompt({
+      task,
       subject,
       level,
       style,
@@ -206,12 +291,8 @@ export async function POST(req) {
     });
 
     const data = await r.json().catch(() => ({}));
-
     if (!r.ok) {
-      return Response.json(
-        { error: "OpenAI error", details: data },
-        { status: 500 }
-      );
+      return Response.json({ error: "OpenAI error", details: data }, { status: 500 });
     }
 
     return Response.json({ reply: data.output_text || "No text output returned." });
